@@ -6,10 +6,10 @@ Esse é um exercício da disciplina INF332 (Arquitetura Orientada a Serviços - 
 
 Integrantes:
 - [Douglas Sermarini](https://www.github.com/Douglas019BR)
-- Gabriel
-- Vitor Gomes
-- Joiseto
-- Stephenson
+- [Gabriel](https://www.github.com/gcesario203)
+- [Vitor Gomes](https://www.github.com/vitorgomes)
+- [Joiseto](https://www.github.com/JoseitoOliveira)
+- [Stephenson](https://www.github.com/stephensonsn)
 
 # Enunciado
 
