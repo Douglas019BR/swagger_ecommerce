@@ -1,0 +1,537 @@
+openapi: 3.0.0
+info:
+  version: "1.0.0"
+  title: "e-Commerce Compra Fácil"
+  description: |
+    A API de integração do sistema Nexus, é um web service REST, através da integração é possivel criar campanhas e mensagens de sms e whatsapp.
+    Para receber os callbacks de sms (status e resposta) é necessário informar seus endereços nos seus respectivos campos no corpo da requisição no envio da mensagem, conforme consta na documentação.
+    Maiores detalhes dos callbacks estão dados no schema na parte inferior do documento.
+servers:
+  - url: "https://localhost/3000"
+paths:
+  /produtos:
+    get:
+      tags:
+        - PRODUTOS
+      summary: "Exibe as rotas disponíveis para o usuário"
+      description: "Retorna a lista de rotas disponíveis para o usuário"
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  allowed_routes:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                        route_name:
+                          type: string
+                        description:
+                          type: string
+        '400':
+          description: Erros no corpo da requisição
+        '429':
+          description: Número de chamadas excedido
+        '500':
+          description: Erro interno do servidor
+    
+    post:
+      tags:
+        - PRODUTOS
+      summary: "Criar produto"
+      description: "Cria um produto"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+                  maxLength: 765
+                phone:
+                  type: string
+                  maxLength: 14
+                  minLength: 11
+                url_callback_dlr:
+                  type: string
+                  maxLength: 256
+                url_callback_mo:
+                  type: string
+                  maxLength: 256
+                reference:
+                  type: string
+                  maxLength: 256
+                campaign_id:
+                  type: integer
+                name:
+                  type: string
+                cpf:
+                  type: string
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+        '400':
+          description: Erros na requisição
+        '413':
+          description: Payload muito grande
+        '429':
+          description: Muitas requisições
+        '500':
+          description: Erro interno
+
+  /produtos/{id}:
+    get:
+      tags:
+        - PRODUTOS
+      summary: "Exibe as campanhas do usuário"
+      description: "Retorna a lista de campanhas do usuário, 25 campanhas por página"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: page
+          in: query
+          description: "Número da página (opcional)"
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            example: 1
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  campaigns:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                        title:
+                          type: string
+                        cost_center:
+                          type: object
+                          properties:
+                            id:
+                              type: integer
+                            name:
+                              type: string
+                        start_hour:
+                          type: string
+                        end_hour:
+                          type: string
+                        schedule_date:
+                          type: string
+                        route:
+                          type: string
+                        status:
+                          type: string
+                        use_whitelist:
+                          type: boolean
+                        created_at:
+                          type: string
+                  pagination:
+                    type: object
+                    properties:
+                      total_pages:
+                        type: integer
+                      current_page:
+                        type: integer
+                      total_campaigns:
+                        type: integer
+
+    put:
+      tags:
+        - PRODUTOS
+      summary: "Atualizar produto"
+      description: "Atualiza um produto existente"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  maxLength: 128
+                cost_center_id:
+                  type: integer
+                cost_center_name:
+                  type: string
+                  maxLength: 128
+                schedule_date:
+                  type: string
+                start_hour:
+                  type: string
+                end_hour:
+                  type: string
+                total_messages:
+                  type: string
+                use_whitelist:
+                  type: boolean
+                route_id:
+                  type: integer
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  title:
+                    type: string
+                  cost_center_name:
+                    type: string
+                  cost_center_id:
+                    type: integer
+        '400':
+          description: Requisição inválida
+        '429':
+          description: Muitas requisições
+        '500':
+          description: Erro interno
+
+  /afiliados:
+    get:
+      tags:
+        - AFILIADOS
+      summary: "Lista as empresas cadastrados"
+      description: "Retorna a lista de empresas cadastradas"
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                      example: 1
+                    name:
+                      type: string
+                      example: "Nome do BM"
+                    cnpj:
+                      type: string
+                      example: "11111111111111"
+                    company_id:
+                      type: integer
+                      example: 1
+                    updated_at:
+                      type: string
+                      format: date-time
+                      example: "2024-01-01T19:00:00.000Z"
+        '500':
+          description: Erro no servidor
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Erro interno do servidor."
+
+    post:
+      tags:
+        - AFILIADOS
+      summary: "Envia mensagens WhatsApp oficial"
+      description: "Envia uma lista de mensagens de texto para disparos a partir da conta oficial do whatsapp. Essa lista deve conter no máximo 10.000 elementos."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                template_id:
+                  type: integer
+                phone_number_id:
+                  type: integer
+                cost_center_id:
+                  type: integer
+                campaign_id:
+                  type: integer
+                contacts:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      phone_number:
+                        type: string
+                      template_variables:
+                        type: array
+                        items:
+                          type: string
+                          minLength: 1
+                      bot_variables:
+                        type: array
+                        items:
+                          type: string
+                          minLength: 1
+              required:
+                - template_id
+                - phone_number_id
+                - cost_center_id
+                - contacts
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+        '400':
+          description: Erros no corpo da requisição
+        '429':
+          description: Número de chamadas excedido
+        '500':
+          description: Erro interno do servidor
+
+    delete:
+      tags:
+        - AFILIADOS
+      summary: "Cria campanha de whatsapp"
+      description: "Cria campanha de whatsapp"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  maxLength: 128
+                cost_center_id:
+                  type: integer
+                cost_center_name:
+                  type: string
+                  maxLength: 128
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    description: Id da campanha
+                  title:
+                    type: string
+                    description: Título da campanha
+                  cost_center_name:
+                    type: string
+                    description: Nome do centro de custo
+                  cost_center_id:
+                    type: integer
+                    description: Id do Centro de custo
+        '400':
+          description: Erros no corpo da requisição
+        '429':
+          description: Número de chamadas excedido
+        '500':
+          description: Erro interno do servidor
+
+  /afiliados/{id}:
+    get:
+      tags:
+        - AFILIADOS
+      summary: "Lista todos os telefones cadastrados ao BM"
+      description: "Retorna a lista de telefones cadastrados ao BM"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                      example: 1
+                    cost_center_id:
+                      type: integer
+                      nullable: true
+                      example: 1
+                    quality_score:
+                      type: string
+                      nullable: true
+                      example: "GREEN"
+                    messaging_limit:
+                      type: string
+                      nullable: true
+                      example: "TIER_250K"
+                    name:
+                      type: string
+                      example: "Nome verificado"
+                    phone:
+                      type: string
+                      example: "+55 11 1234-56789"
+        '500':
+          description: Erro no servidor
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Erro interno do servidor."
+
+    put:
+      tags:
+        - AFILIADOS
+      summary: "Envia mensagens WhatsApp não oficial"
+      description: "Envia uma lista de mensagens de texto para disparos de whatsapp não oficial. Essa lista deve conter no máximo 1.000 elementos."
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: "Mensagem a ser enviada"
+                    example: "teste mensagem 3"
+                  phone:
+                    type: string
+                    description: "Telefone para o qual a mensagem será enviada"
+                    example: "19991444444"
+                  campaign_id:
+                    type: integer
+                    description: "Id da campanha"
+                    example: 12
+                required:
+                  - message
+                  - phone
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    description: "Indica se a operação foi bem-sucedida"
+                    example: true
+        '400':
+          description: Erros no corpo da requisição
+        '429':
+          description: Número de chamadas excedido
+        '500':
+          description: Erro interno do servidor
+
+components:
+  securitySchemes:
+    ApiKeyAuthId:
+      type: apiKey
+      in: header
+      name: x-api-key-id
+    # ApiKeyAuth:
+    #   type: apiKey
+    #   in: header
+    #   name: x-api-key
+
+  schemas:
+    produto:
+      title: DLR do SMS
+      description: Callback a ser recebido na url informada. A url deve ser informada no Body ao enviar a mensagem no campo "url_callback_dlr".
+      type: object
+      properties:
+        status:
+          description: |
+            Status de retorno do CallbackDLR.
+              ERROR - Quando houver algum tipo de erro, vira descrito no campo reason_error a causa.
+              PROCESSED - Se não tiver erro sintático no número, significa que a mensagem foi enviada para processamento.
+              SENT_TO_COMPANY - Enviado para operadora.
+              INVALID - O número é sintaticamente correto porém não esta ativo na rede.
+              DELIVERED_TO_CELLPHONE - Entregue no aparelho.
+              NOT_DELIVERED_TO_CELLPHONE - Não entregue no aparelho.
+              BLACKLIST_USER: Se for escolhido usar a Blacklist personalizada nessa mensagem, esse status significa que o mesmo esta na lista.
+              BLACKLIST_NEXUS: Se for escolhido usar a Blacklist do Nexus nessa mensagem, esse status significa que o mesmo esta na lista.
+              NOT_IN_WHITELIST: Se for escolhido usar a whitelist nessa mensagem, isso signifca que o número não esta na lista.
+          type: string
+          example: PROCESSED
+        reason_error:
+          description: Caso o status seja ERROR, esse campo irá informar o motivo do mesmo.
+          type: string
+          example: Invalid syntax for phone number
+        reference:
+          description: Sera retornado o reference caso seja informado no envio das mensagens.
+          type: string
+          example: refId2
+        phone:
+          description: O telefone para qual a mensagem foi enviada
+          type: string
+          example: 5511111111111
+        message:
+          description: A mensagem que foi enviada.
+          type: string
+          example: Oi, tudo bem?
+
+security:
+  - ApiKeyAuthId: []
+  # - ApiKeyAuth: []
