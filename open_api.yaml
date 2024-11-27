@@ -9,35 +9,70 @@ info:
 servers:
   - url: "https://localhost/3000"
 paths:
-  /produtos:
+  /products:
     get:
-      tags:
-        - PRODUTOS
-      summary: "Exibe as rotas disponíveis para o usuário"
-      description: "Retorna a lista de rotas disponíveis para o usuário"
+      summary: Retorna uma lista de produtos com filtros opcionais
+      description: Permite buscar produtos aplicando filtros como nome, categoria, faixa de preço e descontos.
+      parameters:
+        - name: name
+          in: query
+          description: Nome do produto (busca parcial)
+          required: false
+          schema:
+            type: string
+        - name: category
+          in: query
+          description: Categoria do produto
+          required: false
+          schema:
+            type: string
+        - name: min_price
+          in: query
+          description: Preço mínimo
+          required: false
+          schema:
+            type: number
+            format: float
+        - name: max_price
+          in: query
+          description: Preço máximo
+          required: false
+          schema:
+            type: number
+            format: float
+        - name: on_discount
+          in: query
+          description: Filtrar apenas produtos com desconto
+          required: false
+          schema:
+            type: boolean
       responses:
         '200':
-          description: Sucesso
+          description: Lista de produtos retornada com sucesso
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                  allowed_routes:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        id:
-                          type: integer
-                        route_name:
-                          type: string
-                        description:
-                          type: string
-        '400':
-          description: Erros no corpo da requisição
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                      description: ID do produto
+                    name:
+                      type: string
+                      description: Nome do produto
+                    category:
+                      type: string
+                      description: Categoria do produto
+                    price:
+                      type: number
+                      format: float
+                      description: Preço do produto
+                    discount:
+                      type: number
+                      format: float
+                      description: Porcentagem de desconto (0-100)
         '429':
           description: Número de chamadas excedido
         '500':
@@ -334,21 +369,6 @@ paths:
         - AFILIADOS
       summary: "Cria campanha de whatsapp"
       description: "Cria campanha de whatsapp"
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                title:
-                  type: string
-                  maxLength: 128
-                cost_center_id:
-                  type: integer
-                cost_center_name:
-                  type: string
-                  maxLength: 128
       responses:
         '200':
           description: Sucesso
