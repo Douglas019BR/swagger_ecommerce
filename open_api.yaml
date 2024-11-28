@@ -3,20 +3,30 @@ info:
   version: "1.0.0"
   title: "e-Commerce Compra Fácil"
   description: |
-    A API de integração do sistema Nexus, é um web service REST, através da integração é possivel criar campanhas e mensagens de sms e whatsapp.
-    Para receber os callbacks de sms (status e resposta) é necessário informar seus endereços nos seus respectivos campos no corpo da requisição no envio da mensagem, conforme consta na documentação.
-    Maiores detalhes dos callbacks estão dados no schema na parte inferior do documento.
+    A API de integração do sistema **Compra Fácil** é um web service REST projetado para facilitar parcerias digitais por meio da exposição de dados de produtos e afiliados.
+    Voltada para empresas que desejam integrar soluções como buscadores de preços, aplicativos de descontos e redes de afiliados, a API oferece recursos para busca, manipulação e ordenação de produtos, além do gerenciamento de afiliados.
+    
+    O objetivo desta API é ampliar o alcance da plataforma **Compra Fácil**, promovendo uma experiência de integração simplificada e robusta para parceiros comerciais, desenvolvedores e terceiros, contribuindo para a expansão do ecossistema digital.
+
+    Benefícios:
+    - **Busca de Produtos:** Filtros avançados por nome, categoria, faixa de preço e descontos.
+    - **Ordenação Flexível:** Permite listar produtos por menor/maior preço, mais vendidos e lançamentos.
+    - **Gestão de Afiliados:** Criar, editar, excluir e listar afiliados de forma intuitiva.
+
 servers:
   - url: "https://localhost/3000"
+
 paths:
   /products:
     get:
-      summary: Retorna uma lista de produtos com filtros opcionais
-      description: Permite buscar produtos aplicando filtros como nome, categoria, faixa de preço e descontos.
+      tags:
+        - PRODUTOS
+      summary: Retorna uma lista de produtos com filtros, ordenação e paginação
+      description: Permite buscar, filtrar e ordenar produtos por diversos critérios.
       parameters:
         - name: name
           in: query
-          description: Nome do produto (busca parcial)
+          description: Nome parcial ou completo do produto
           required: false
           schema:
             type: string
@@ -46,221 +56,280 @@ paths:
           required: false
           schema:
             type: boolean
+        - name: sort
+          in: query
+          description: Ordenação dos resultados (pode ser combinado com asc ou desc)
+          required: false
+          schema:
+            type: string
+            enum: [price, sales, release_date]
+        - name: order
+          in: query
+          description: Direção da ordenação (ascendente ou descendente)
+          required: false
+          schema:
+            type: string
+            enum: [asc, desc]
+        - name: page
+          in: query
+          description: Número da página para a paginação
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: page_size
+          in: query
+          description: Quantidade de produtos por página
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
       responses:
         '200':
           description: Lista de produtos retornada com sucesso
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    id:
-                      type: string
-                      description: ID do produto
-                    name:
-                      type: string
-                      description: Nome do produto
-                    category:
-                      type: string
-                      description: Categoria do produto
-                    price:
-                      type: number
-                      format: float
-                      description: Preço do produto
-                    discount:
-                      type: number
-                      format: float
-                      description: Porcentagem de desconto (0-100)
-        '429':
-          description: Número de chamadas excedido
-        '500':
-          description: Erro interno do servidor
-    
-    post:
-      tags:
-        - PRODUTOS
-      summary: "Criar produto"
-      description: "Cria um produto"
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                message:
-                  type: string
-                  maxLength: 765
-                phone:
-                  type: string
-                  maxLength: 14
-                  minLength: 11
-                url_callback_dlr:
-                  type: string
-                  maxLength: 256
-                url_callback_mo:
-                  type: string
-                  maxLength: 256
-                reference:
-                  type: string
-                  maxLength: 256
-                campaign_id:
-                  type: integer
-                name:
-                  type: string
-                cpf:
-                  type: string
-      responses:
-        '200':
-          description: Sucesso
-          content:
-            application/json:
-              schema:
                 type: object
                 properties:
-                  success:
-                    type: boolean
-        '400':
-          description: Erros na requisição
-        '413':
-          description: Payload muito grande
-        '429':
-          description: Muitas requisições
-        '500':
-          description: Erro interno
-
-  /produtos/{id}:
-    get:
-      tags:
-        - PRODUTOS
-      summary: "Exibe as campanhas do usuário"
-      description: "Retorna a lista de campanhas do usuário, 25 campanhas por página"
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-        - name: page
-          in: query
-          description: "Número da página (opcional)"
-          required: false
-          schema:
-            type: integer
-            minimum: 1
-            example: 1
-      responses:
-        '200':
-          description: Sucesso
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                  campaigns:
+                  total:
+                    type: integer
+                    description: Total de produtos encontrados
+                  page:
+                    type: integer
+                    description: Página atual
+                  page_size:
+                    type: integer
+                    description: Tamanho da página atual
+                  products:
                     type: array
                     items:
                       type: object
                       properties:
                         id:
+                          type: string
+                          description: ID do produto
+                        name:
+                          type: string
+                          description: Nome do produto
+                        category:
+                          type: string
+                          description: Categoria do produto
+                        price:
+                          type: number
+                          format: float
+                          description: Preço do produto
+                        sales:
                           type: integer
-                        title:
+                          description: Quantidade de vendas
+                        release_date:
                           type: string
-                        cost_center:
-                          type: object
-                          properties:
-                            id:
-                              type: integer
-                            name:
-                              type: string
-                        start_hour:
-                          type: string
-                        end_hour:
-                          type: string
-                        schedule_date:
-                          type: string
-                        route:
-                          type: string
-                        status:
-                          type: string
-                        use_whitelist:
-                          type: boolean
-                        created_at:
-                          type: string
-                  pagination:
-                    type: object
-                    properties:
-                      total_pages:
-                        type: integer
-                      current_page:
-                        type: integer
-                      total_campaigns:
-                        type: integer
-
-    put:
+                          format: date
+                          description: Data de lançamento
+                        discount:
+                          type: number
+                          format: float
+                          description: Porcentagem de desconto
+        '429':
+          description: Número de chamadas excedido
+        '500':
+          description: Erro interno do servidor
+  
+    post:
       tags:
         - PRODUTOS
-      summary: "Atualizar produto"
-      description: "Atualiza um produto existente"
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
+      summary: Cria um novo produto
+      description: Endpoint para criar um novo produto com os campos necessários.
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
+              required:
+                - name
+                - category
+                - price
+                - release_date
               properties:
-                title:
+                name:
                   type: string
-                  maxLength: 128
-                cost_center_id:
+                  description: Nome do produto
+                  example: "Smartphone Z"
+                category:
+                  type: string
+                  description: Categoria do produto
+                  example: "Eletrônicos"
+                description:
+                  type: string
+                  description: Descrição do produto
+                  example: "Smartphone de última geração com câmera de 108 MP."
+                price:
+                  type: number
+                  format: float
+                  description: Preço do produto
+                  example: 1999.99
+                discount:
+                  type: number
+                  format: float
+                  description: Porcentagem de desconto (opcional)
+                  example: 10.0
+                release_date:
+                  type: string
+                  format: date
+                  description: Data de lançamento do produto
+                  example: "2024-01-15"
+                sales:
                   type: integer
-                cost_center_name:
-                  type: string
-                  maxLength: 128
-                schedule_date:
-                  type: string
-                start_hour:
-                  type: string
-                end_hour:
-                  type: string
-                total_messages:
-                  type: string
-                use_whitelist:
-                  type: boolean
-                route_id:
-                  type: integer
+                  description: Número inicial de vendas (opcional)
+                  example: 0
       responses:
-        '200':
-          description: Sucesso
+        '201':
+          description: Produto criado com sucesso
           content:
             application/json:
               schema:
                 type: object
                 properties:
                   id:
-                    type: integer
-                  title:
                     type: string
-                  cost_center_name:
+                    description: ID do produto criado
+                    example: "12345"
+                  name:
                     type: string
-                  cost_center_id:
-                    type: integer
+                    description: Nome do produto
+                    example: "Smartphone Z"
+                  category:
+                    type: string
+                    description: Categoria do produto
+                    example: "Eletrônicos"
+                  price:
+                    type: number
+                    format: float
+                    description: Preço do produto
+                    example: 1999.99
+                  discount:
+                    type: number
+                    format: float
+                    description: Porcentagem de desconto
+                    example: 10.0
+                  release_date:
+                    type: string
+                    format: date
+                    description: Data de lançamento do produto
+                    example: "2024-01-15"
         '400':
-          description: Requisição inválida
+          description: Requisição inválida (validação falhou)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Mensagem de erro detalhando a falha de validação
+                    example: "O campo 'name' é obrigatório."
         '429':
           description: Muitas requisições
         '500':
           description: Erro interno
+  
+  /products/{id}:
+    get:
+      tags:
+        - PRODUTOS
+      summary: Retorna um produto pelo ID
+      description: Recupera os detalhes de um produto específico.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID do produto a ser recuperado.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Produto retornado com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  name:
+                    type: string
+                  category:
+                    type: string
+                  price:
+                    type: number
+        '404':
+          description: Produto não encontrado
+        '500':
+          description: Erro interno
+        
+
+    put:
+      tags:
+        - PRODUTOS
+      summary: Atualiza um produto pelo ID
+      description: Atualiza as informações de um produto existente.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID do produto a ser atualizado.
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: Nome do produto
+                category:
+                  type: string
+                  description: Categoria do produto
+                price:
+                  type: number
+                  description: Preço do produto
+      responses:
+        '200':
+          description: Produto atualizado com sucesso
+        '400':
+          description: Requisição inválida
+        '404':
+          description: Produto não encontrado
+        '500':
+          description: Erro interno
+
+    delete:
+      tags:
+        - PRODUTOS
+      summary: Remove um produto pelo ID
+      description: Exclui um produto existente.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID do produto a ser excluído.
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Produto excluído com sucesso
+        '404':
+          description: Produto não encontrado
+        '500':
+          description: Erro interno
+      
 
   /afiliados:
     get:
